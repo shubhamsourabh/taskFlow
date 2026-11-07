@@ -22,6 +22,31 @@ export interface LoginBody {
   password: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export interface UserResponse {
+  user: User;
+}
+
+export interface TasksResponse {
+  tasks: Task[];
+}
+
+export interface TaskResponse {
+  task: Task;
+}
+
+export interface MessageResponse {
+  message: string;
+}
 export interface RegisterBody extends LoginBody {
   name: string;
 }

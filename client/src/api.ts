@@ -1,4 +1,5 @@
-import type { NewTask, LoginBody, RegisterBody,TaskStatus,TaskPriority } from "./types";
+import {type Task, type NewTask, type LoginBody, type RegisterBody,type TaskStatus,type TaskPriority, type AuthResponse, UserResponse, TaskResponse, MessageResponse } from "./types";
+type TasksResponse = { tasks: Task[] };
 const BASE = import.meta.env.VITE_API_URL || "";
 
 
@@ -28,7 +29,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path:string, { method = "GET", body }:RequestOptions= {}) {
+async function request<T>(path:string, { method = "GET", body }:RequestOptions= {}) :Promise<T>{
   const headers:Record<string,string> = { "Content-Type": "application/json" };
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -43,22 +44,22 @@ async function request(path:string, { method = "GET", body }:RequestOptions= {})
   if (!res.ok) {
    throw new ApiError(data.error || "Request failed", res.status);
   }
-  return data;
+  return data as T;
 }
 
 export const api = {
-  register: (body:RegisterBody) => request("/auth/register", { method: "POST", body }),
-  login: (body:LoginBody) => request("/auth/login", { method: "POST", body }),
-  me: () => request("/auth/me"),
+  register: (body:RegisterBody) => request<AuthResponse>("/auth/register", { method: "POST", body }),
+  login: (body:LoginBody) => request<AuthResponse>("/auth/login", { method: "POST", body }),
+  me: () => request<UserResponse>("/auth/me"),
  getTasks: (params: TaskFilters = {}) => {
   const qs = new URLSearchParams();
   if (params.status) qs.set("status", params.status);
   if (params.priority) qs.set("priority", params.priority);
   if (params.q) qs.set("q", params.q);
   const query = qs.toString();
-  return request(`/tasks${query ? `?${query}` : ""}`);
+  return request<TasksResponse>(`/tasks${query ? `?${query}` : ""}`);
 },
-  createTask: (body:NewTask) => request("/tasks", { method: "POST", body }),
-  updateTask: (id:string, body:Partial<NewTask>) => request(`/tasks/${id}`, { method: "PUT", body }),
-  deleteTask: (id:string) => request(`/tasks/${id}`, { method: "DELETE" }),
+  createTask: (body:NewTask) => request<TaskResponse>("/tasks", { method: "POST", body }),
+  updateTask: (id:string, body:Partial<NewTask>) => request<TaskResponse>(`/tasks/${id}`, { method: "PUT", body }),
+  deleteTask: (id:string) => request<MessageResponse>(`/tasks/${id}`, { method: "DELETE" }),
 };
