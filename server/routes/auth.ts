@@ -6,6 +6,7 @@ import type { Types } from "mongoose";
 import User from "../models/User.js";
 import auth from "../middleware/auth.js";
 
+
 const router = Router();
 
 const signToken = (id: Types.ObjectId): string => {

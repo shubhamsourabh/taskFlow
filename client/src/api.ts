@@ -1,4 +1,6 @@
+import type { NewTask, LoginBody, RegisterBody } from "./types";
 const BASE = import.meta.env.VITE_API_URL || "";
+
 
 const TOKEN_KEY = "taskflow_token";
 
@@ -39,8 +41,8 @@ async function request(path:string, { method = "GET", body }:RequestOptions= {})
 }
 
 export const api = {
-  register: (body) => request("/auth/register", { method: "POST", body }),
-  login: (body) => request("/auth/login", { method: "POST", body }),
+  register: (body:RegisterBody) => request("/auth/register", { method: "POST", body }),
+  login: (body:LoginBody) => request("/auth/login", { method: "POST", body }),
   me: () => request("/auth/me"),
   getTasks: (params = {}) => {
     const qs = new URLSearchParams(
@@ -48,7 +50,7 @@ export const api = {
     ).toString();
     return request(`/tasks${qs ? `?${qs}` : ""}`);
   },
-  createTask: (body) => request("/tasks", { method: "POST", body }),
-  updateTask: (id, body) => request(`/tasks/${id}`, { method: "PUT", body }),
-  deleteTask: (id) => request(`/tasks/${id}`, { method: "DELETE" }),
+  createTask: (body:NewTask) => request("/tasks", { method: "POST", body }),
+  updateTask: (id:string, body:Partial<NewTask>) => request(`/tasks/${id}`, { method: "PUT", body }),
+  deleteTask: (id:string) => request(`/tasks/${id}`, { method: "DELETE" }),
 };
