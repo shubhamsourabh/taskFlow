@@ -3,11 +3,25 @@ const BASE = import.meta.env.VITE_API_URL || "";
 const TOKEN_KEY = "taskflow_token";
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
-export const setToken = (t) => localStorage.setItem(TOKEN_KEY, t);
+export const setToken = (t:string) => localStorage.setItem(TOKEN_KEY, t);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
-async function request(path, { method = "GET", body } = {}) {
-  const headers = { "Content-Type": "application/json" };
+type RequestOptions = {
+  method?: "GET" | "PUT" | "POST" | "DELETE";
+  body?: unknown;
+};
+
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
+async function request(path:string, { method = "GET", body }:RequestOptions= {}) {
+  const headers:Record<string,string> = { "Content-Type": "application/json" };
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -19,9 +33,7 @@ async function request(path, { method = "GET", body } = {}) {
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const err = new Error(data.error || "Request failed");
-    err.status = res.status;
-    throw err;
+   throw new ApiError(data.error || "Request failed", res.status);
   }
   return data;
 }
