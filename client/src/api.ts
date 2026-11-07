@@ -1,4 +1,4 @@
-import type { NewTask, LoginBody, RegisterBody } from "./types";
+import type { NewTask, LoginBody, RegisterBody,TaskStatus,TaskPriority } from "./types";
 const BASE = import.meta.env.VITE_API_URL || "";
 
 
@@ -11,6 +11,12 @@ export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 type RequestOptions = {
   method?: "GET" | "PUT" | "POST" | "DELETE";
   body?: unknown;
+};
+
+type TaskFilters = {
+  status?: TaskStatus | "";
+  priority?: TaskPriority | "";
+  q?: string;
 };
 
 export class ApiError extends Error {
@@ -44,12 +50,14 @@ export const api = {
   register: (body:RegisterBody) => request("/auth/register", { method: "POST", body }),
   login: (body:LoginBody) => request("/auth/login", { method: "POST", body }),
   me: () => request("/auth/me"),
-  getTasks: (params = {}) => {
-    const qs = new URLSearchParams(
-      Object.entries(params).filter(([, v]) => v)
-    ).toString();
-    return request(`/tasks${qs ? `?${qs}` : ""}`);
-  },
+ getTasks: (params: TaskFilters = {}) => {
+  const qs = new URLSearchParams();
+  if (params.status) qs.set("status", params.status);
+  if (params.priority) qs.set("priority", params.priority);
+  if (params.q) qs.set("q", params.q);
+  const query = qs.toString();
+  return request(`/tasks${query ? `?${query}` : ""}`);
+},
   createTask: (body:NewTask) => request("/tasks", { method: "POST", body }),
   updateTask: (id:string, body:Partial<NewTask>) => request(`/tasks/${id}`, { method: "PUT", body }),
   deleteTask: (id:string) => request(`/tasks/${id}`, { method: "DELETE" }),
