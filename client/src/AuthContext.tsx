@@ -1,10 +1,20 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { api, getToken, setToken, clearToken } from "./api";
+import type { User } from "./types";
+import type { ReactNode } from "react";
 
-const AuthContext = createContext(null);
+ interface AuthContextValue{
+  user:User | null;
+  loading:boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => void;
+}
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({children}:{children:ReactNode} ) {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(Boolean(getToken()));
 
   // Restore session on page load
@@ -17,13 +27,13 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email:string, password:string) => {
     const d = await api.login({ email, password });
     setToken(d.token);
     setUser(d.user);
   }, []);
 
-  const register = useCallback(async (name, email, password) => {
+  const register = useCallback(async (name:string, email:string, password:string) => {
     const d = await api.register({ name, email, password });
     setToken(d.token);
     setUser(d.user);
@@ -41,4 +51,9 @@ export function AuthProvider({ children }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if(ctx === null)
+      throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
+}
