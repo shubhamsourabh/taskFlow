@@ -1,15 +1,28 @@
 import { useState } from "react";
+import type { NewTask ,TaskPriority } from "../types";
+import type { ChangeEvent, SubmitEvent } from "react";
 
-const empty = { title: "", description: "", priority: "medium", dueDate: "" };
+interface FormState {
+  title: string;
+  description: string;
+  priority: TaskPriority;
+  dueDate: string;
+}
 
-export default function TaskForm({ onCreate }) {
-  const [form, setForm] = useState(empty);
+const empty:FormState = { title: "", description: "", priority: "medium", dueDate: "" };
+
+interface TaskFormProps {
+  onCreate: (task: NewTask) => Promise<void> ;
+}
+
+export default function TaskForm({ onCreate }:TaskFormProps) {
+  const [form, setForm] = useState<FormState>(empty);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const onChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  async function onSubmit(e) {
+  async function onSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setError("");
@@ -17,7 +30,11 @@ export default function TaskForm({ onCreate }) {
       await onCreate({ ...form, dueDate: form.dueDate || null });
       setForm(empty);
     } catch (err) {
+      if(err instanceof Error)
       setError(err.message);
+    else{
+       setError("Something went wrong");
+    } 
     } finally {
       setBusy(false);
     }
