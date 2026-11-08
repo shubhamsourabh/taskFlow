@@ -1,11 +1,18 @@
-const NEXT = { todo: "in-progress", "in-progress": "done", done: "todo" };
-const LABEL = { todo: "To do", "in-progress": "In progress", done: "Done" };
+const NEXT:Record<TaskStatus,TaskStatus> = { todo: "in-progress", "in-progress": "done", done: "todo" };
+const LABEL:Record<TaskStatus,string> = { todo: "To do", "in-progress": "In progress", done: "Done" };
+import type { Task , TaskStatus } from "../types";
 
-function formatDate(iso) {
+function formatDate(iso:string) {
   return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
 
-export default function TaskItem({ task, onUpdate, onDelete }) {
+interface TaskItemProps {
+  task: Task;
+  onUpdate: (id: string, changes: Partial<Task>) => void;
+  onDelete: (id: string) => void;
+}
+
+export default function TaskItem({ task, onUpdate, onDelete }:TaskItemProps) {
   const overdue =
     task.dueDate && task.status !== "done" && new Date(task.dueDate) < new Date(new Date().toDateString());
 
