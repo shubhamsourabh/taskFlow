@@ -1,13 +1,14 @@
-import { useEffect, useState, useCallback } from "react";
-import { api } from "../api";
+import { useEffect, useState, useCallback,type ChangeEvent } from "react";
+import { api ,type TaskFilters , ApiError } from "../api";
 import { useAuth } from "../AuthContext";
 import TaskForm from "../components/TaskForm";
 import TaskItem from "../components/TaskItem";
+import type { Task, NewTask, TaskStatus } from "../types";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
-  const [tasks, setTasks] = useState([]);
-  const [filters, setFilters] = useState({ status: "", priority: "", q: "" });
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [filters, setFilters] = useState<TaskFilters>({ status: "", priority: "", q: "" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -17,8 +18,8 @@ export default function Dashboard() {
       const d = await api.getTasks(filters);
       setTasks(d.tasks);
     } catch (err) {
-      if (err.status === 401) logout();
-      else setError(err.message);
+      if (err instanceof ApiError && err.status === 401) logout(); 
+      else setError(err instanceof Error? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -30,38 +31,38 @@ export default function Dashboard() {
     return () => clearTimeout(t);
   }, [load]);
 
-  async function createTask(body) {
+  async function createTask(body:NewTask) {
     const d = await api.createTask(body);
     setTasks((prev) => [d.task, ...prev]);
   }
 
-  async function updateTask(id, body) {
+  async function updateTask(id:string, body:Partial<Task>) {
     try {
       const d = await api.updateTask(id, body);
       setTasks((prev) => prev.map((t) => (t._id === id ? d.task : t)));
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error? err.message: "Something went wrong");
     }
   }
 
-  async function deleteTask(id) {
+  async function deleteTask(id:string) {
     try {
       await api.deleteTask(id);
       setTasks((prev) => prev.filter((t) => t._id !== id));
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error? err.message: "Something went wrong");
     }
   }
 
-  const setFilter = (e) => setFilters({ ...filters, [e.target.name]: e.target.value });
-  const count = (s) => tasks.filter((t) => t.status === s).length;
+  const setFilter = (e:ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFilters({ ...filters, [e.target.name]: e.target.value });
+  const count = (s:TaskStatus) => tasks.filter((t) => t.status === s).length;
 
   return (
     <div className="app">
       <header className="topbar">
         <h1>TaskFlow</h1>
         <div className="user">
-          <span className="muted">{user.name}</span>
+          <span className="muted">{user?.name}</span>
           <button className="btn ghost" onClick={logout}>Log out</button>
         </div>
       </header>

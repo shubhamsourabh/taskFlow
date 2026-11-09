@@ -14,7 +14,7 @@ type RequestOptions = {
   body?: unknown;
 };
 
-type TaskFilters = {
+export type TaskFilters = {
   status?: TaskStatus | "";
   priority?: TaskPriority | "";
   q?: string;
