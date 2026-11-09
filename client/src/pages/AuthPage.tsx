@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState ,type ChangeEvent,type SyntheticEvent} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 
-export default function AuthPage({ mode }) {
+interface AuthPageProps{
+  mode: "login" | "register";
+}
+export default function AuthPage({ mode }:AuthPageProps) {
   const isLogin = mode === "login";
   const { login, register } = useAuth();
   const navigate = useNavigate();
@@ -10,9 +13,9 @@ export default function AuthPage({ mode }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const onChange = (e:ChangeEvent<HTMLInputElement>) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  async function onSubmit(e) {
+  async function onSubmit(e:SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setBusy(true);
@@ -21,7 +24,7 @@ export default function AuthPage({ mode }) {
       else await register(form.name, form.email, form.password);
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setBusy(false);
     }
